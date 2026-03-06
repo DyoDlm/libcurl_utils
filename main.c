@@ -19,9 +19,9 @@ char	*build_argument(char *prompt)
 	
 	if (!argument)
 		return NULL;
-	argument[argument_len] = '\0';
+	argument[argument_len] = 'a';
 	strlcat(argument, json_format, strlen(argument) + strlen(json_format));
-	strlcat(argument, prompt, strlen(argument) + strlen(close_format));
+	strlcat(argument, prompt, strlen(argument) + strlen(prompt));
 	strlcat(argument, close_format, strlen(argument) + strlen(close_format));
 	printf("argument is : %s\n", argument);
 	//	argument = url + json_format + prompt + close_format;	
@@ -81,9 +81,10 @@ int	main(int ac, char **av)
 	} else {
 		prompt = strdup(av[1]);
 	}
+	printf("Prompt : %s\n", prompt);
 	curl_argument = build_argument(prompt);
+
 	exec(url, curl_argument);
-        printf("Prompt : %s\n", prompt);
 	free(prompt);
 	if (curl_argument)
 		free(curl_argument);
