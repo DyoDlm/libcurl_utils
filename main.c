@@ -128,7 +128,40 @@ static void	display(char *s)
 	return ; (void)s;
 }
 
-int	main(int ac, char **av)	//	./ask_littletown [prompt] [model]
+static char	*build_prompt(int ac, char **av)
+{
+	char	*prompt = NULL;
+	size_t	len = 0;
+
+	for (int i = 2; i < ac; i++)
+		len += strlen(av[i]);
+	prompt = malloc(len + ac);
+	if (!prompt)
+		return NULL;
+	prompt[0] = '\0';
+	for (int i = 2; i < ac; i++)
+	{
+		strlcat(prompt, av[i], strlen(prompt) + strlen(av[i]) + 1);
+		strlcat(prompt, " ", strlen(prompt) + 2);
+	}
+	//	printf("prompt is : %s\n", prompt); 
+	return prompt;
+}
+
+static void	clean_input(char **input)
+{
+	char *p = *input;
+	
+	while (*p) 
+	{
+		if (*p == '\\' && (*(p + 1) != 'n' && *(p + 1) != 't'))
+			*p = ' ';
+		p++;
+	}
+}
+
+
+int	main(int ac, char **av)	//	./ask_littletown [model] [prompt]
 {
 	char		*curl_argument = NULL;
 	char		*prompt = NULL;
@@ -137,27 +170,40 @@ int	main(int ac, char **av)	//	./ask_littletown [prompt] [model]
 	const char	*url = "http://192.168.1.200:11434/api/generate";
 
 	if (ac <= 2) {
+<<<<<<< HEAD
 		return 1;
 		printf("No argument given\nEnter you prompt :\n");
+=======
+		return 0;
+		// printf("No argument given\nEnter you prompt :\n");
+>>>>>>> ad7bb2689a4da2df44967fa4adc412fe0fcfaa53
 		prompt = get_next_line(0);
 		if (prompt)
 			prompt[strlen(prompt) - 1] = ' ';
 		free(prompt);
 		return 1;
 	} else {
-		prompt = strdup(av[1]);
-		model = strdup(av[2]);
+		prompt = build_prompt(ac, av);
+		if (!prompt)
+			return 0;
+		model = strdup(av[1]);
+		clean_input(&prompt);
 	}
+	//	printf("Prompt is : %s\n", prompt);
 	curl_argument = build_argument(prompt, model);
 	response = exec(url, curl_argument);
 	clean_up_json(&response);
 	display(response);
 	free(response);
-	//printf("Prompt : %s\n", prompt);
 	free(prompt);
 	free(model);
+	//	printf("Freeing\n");
 	if (curl_argument)
 		free(curl_argument);
+<<<<<<< HEAD
 	return 0;
+=======
+	return 1; //printf("ok"), 1;
+>>>>>>> ad7bb2689a4da2df44967fa4adc412fe0fcfaa53
 }
 
