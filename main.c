@@ -124,6 +124,7 @@ static void	clean_up_json(char **s)
 static void	display(char *s)
 {
 	printf("%s\n", s);
+	fflush(stdout);
 	return ; (void)s;
 }
 
@@ -136,13 +137,13 @@ int	main(int ac, char **av)	//	./ask_littletown [prompt] [model]
 	const char	*url = "http://192.168.1.200:11434/api/generate";
 
 	if (ac <= 2) {
-		return 0;
+		return 1;
 		printf("No argument given\nEnter you prompt :\n");
 		prompt = get_next_line(0);
 		if (prompt)
 			prompt[strlen(prompt) - 1] = ' ';
 		free(prompt);
-		return 0;
+		return 1;
 	} else {
 		prompt = strdup(av[1]);
 		model = strdup(av[2]);
@@ -157,6 +158,6 @@ int	main(int ac, char **av)	//	./ask_littletown [prompt] [model]
 	free(model);
 	if (curl_argument)
 		free(curl_argument);
-	return 1;
+	return 0;
 }
 
