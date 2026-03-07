@@ -1,7 +1,7 @@
 default: build
 
 build: clean
-	gcc -Wall -o curl main.c gnl.c util.c libjson-c.a -lcurl 
+	gcc -Wall -Wextra -Werror -o ask_littletown main.c gnl.c util.c libjson-c.a -lcurl 
 
 clean:
 	rm -rf curl 
