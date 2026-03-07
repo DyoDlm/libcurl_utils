@@ -22,6 +22,7 @@ char	*build_argument(char *prompt, char *model)
 	
 	if (!argument)
 		return NULL;
+<<<<<<< HEAD
 	argument[argument_len] = '\0';
 	strlcat(argument, json_format, strlen(argument) + strlen(json_format) + 1);
 	strlcat(argument, model, strlen(argument) + strlen(model) + 1);
@@ -29,6 +30,13 @@ char	*build_argument(char *prompt, char *model)
 	strlcat(argument, prompt, strlen(argument) + strlen(prompt) + 1);
 	strlcat(argument, close_format, strlen(argument) + strlen(close_format) + 1);
 	//	printf("argument is : %s\n", argument);
+=======
+	argument[argument_len] = 'a';
+	strlcat(argument, json_format, strlen(argument) + strlen(json_format));
+	strlcat(argument, prompt, strlen(argument) + strlen(prompt));
+	strlcat(argument, close_format, strlen(argument) + strlen(close_format));
+	printf("argument is : %s\n", argument);
+>>>>>>> refs/remotes/origin/main
 	//	argument = url + json_format + prompt + close_format;	
 	return argument;
 }
@@ -142,12 +150,19 @@ int	main(int ac, char **av)	//	./ask_littletown [prompt] [model]
 		prompt = strdup(av[1]);
 		model = strdup(av[2]);
 	}
+<<<<<<< HEAD
 	curl_argument = build_argument(prompt, model);
 	response = exec(url, curl_argument);
 	clean_up_json(&response);
 	display(response);
 	free(response);
 	//printf("Prompt : %s\n", prompt);
+=======
+	printf("Prompt : %s\n", prompt);
+	curl_argument = build_argument(prompt);
+
+	exec(url, curl_argument);
+>>>>>>> refs/remotes/origin/main
 	free(prompt);
 	free(model);
 	if (curl_argument)
