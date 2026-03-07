@@ -28,7 +28,7 @@ static char	*build_argument(char *prompt, char *model)
 	strlcat(argument, json_format2, strlen(argument) + strlen(json_format2) + 1);
 	strlcat(argument, prompt, strlen(argument) + strlen(prompt) + 1);
 	strlcat(argument, close_format, strlen(argument) + strlen(close_format) + 1);
-	printf("argument is : %s\n", argument);
+	//	printf("argument is : %s\n", argument);
 	//	argument = url + json_format + prompt + close_format;	
 	return argument;
 }
@@ -81,28 +81,25 @@ static void	clean_up_json(char **s)
 	size_t		to = 0;
 	size_t		iterator = 0;
 
-	if (*s)
-		printf("Cleaning : %s\n", *s);
-	printf("Start len : %ld\nEnd len : %ld\nTotal len : %ld\n", 
-			strlen(start), strlen(end), strlen(*s));
+	//if (*s)
+	//	printf("Cleaning : %s\n", *s);
+	//printf("Start len : %ld\nEnd len : %ld\nTotal len : %ld\n", 
+	//		strlen(start), strlen(end), strlen(*s));
 	
 	for (size_t i = 0; (*s)[i] && (!from || !to); i++)
 	{
 		iterator = 0;
-		printf("A");
 		while (!from
 				&& start[iterator] && (*s)[i + iterator]
 				&& start[iterator] == (*s)[i + iterator])
 			iterator++;
-		printf("B");
 		while (from
 				&& end[iterator] && (*s)[i + iterator]
 				&& end[iterator] == (*s)[i + iterator])
 			iterator++;
-		printf("C");
 		switch (iterator) {
 			case 13:
-				from = i;
+				from = i + 13;
 				break ;
 			case 9:
 				to = i;
@@ -110,9 +107,8 @@ static void	clean_up_json(char **s)
 			default:
 				break ;
 		}
-		printf("D");
 	}
-	printf("extracting from : %ld to %ld\n", from, to);
+	// printf("extracting from : %ld to %ld\n", from, to);
 	cleaned_up = malloc(to - from + 1);
 	if (!cleaned_up)
 		return ;
@@ -122,12 +118,12 @@ static void	clean_up_json(char **s)
 	cleaned_up[iterator] = 0;
 	free(*s);
 	*s = cleaned_up;
-	printf("Cleaned up res 1 : %s\n", cleaned_up);
+	// printf("Cleaned up res 1 : %s\n", cleaned_up);
 }
 
 static void	display(char *s)
 {
-	printf("Cleaned up response : %s\n", s);
+	printf("%s\n", s);
 	return ; (void)s;
 }
 
