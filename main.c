@@ -8,42 +8,25 @@
 char    *get_next_line(int fd);
 size_t	WriteMemoryCallback(void *contents, size_t size, size_t nmemb, void *userp);
 
-/*static char	*build_argument(char *prompt, char *model)
+static char	*build_argument(char *prompt, char *model)
 {
 	const char	*close_format = "\", \"stream\":false }  ";
-	const char	*json_format  = "{ \"model\":\"";
+	const char	*json_format = "{ \"model\":\"";
 	const char	*json_format2 = "\",\"prompt\":\"";
-	size_t		argument_len = strlen(prompt) 
-					+ strlen(json_format) 
+	size_t		argument_len = strlen(prompt)
+					+ strlen(json_format)
 					+ strlen(json_format2)
-					+ strlen(model)
+					+ strlen(model) 
 					+ strlen(close_format) + 1;
-	char		*argument = malloc(argument_len);
 	
+	char		*argument = malloc(argument_len);
+
 	if (!argument)
 		return NULL;
-	argument[argument_len] = '\0';
-	strlcat(argument, json_format, strlen(argument) + strlen(json_format) + 1);
-	strlcat(argument, model, strlen(argument) + strlen(model) + 1);
-	strlcat(argument, json_format2, strlen(argument) + strlen(json_format2) + 1);
-	strlcat(argument, prompt, strlen(argument) + strlen(prompt) + 1);
-	strlcat(argument, close_format, strlen(argument) + strlen(close_format) + 1);
-	//	printf("argument is : %s\n", argument);
-	//	argument = url + json_format + prompt + close_format;	
+	snprintf(argument, argument_len, 
+			"%s%s%s%s%s",
+			json_format, model, json_format2, prompt, close_format);
 	return argument;
-}*/
-static char *build_argument(char *prompt, char *model) {
-    const char *close_format = "\", \"stream\":false }  ";
-    const char *json_format = "{ \"model\":\"";
-    const char *json_format2 = "\",\"prompt\":\"";
-
-    size_t argument_len = strlen(prompt) + strlen(json_format) + strlen(json_format2) + strlen(model) + strlen(close_format) + 1;
-    char *argument = malloc(argument_len);
-
-    if (!argument) return NULL;
-
-    snprintf(argument, argument_len, "%s%s%s%s%s", json_format, model, json_format2, prompt, close_format);
-    return argument;
 }
 
 
@@ -53,7 +36,9 @@ static char	*exec(const char *url, char *argument)
 	CURLcode res;
 	char	*response = NULL;
 	struct MemoryStruct chunk;
-	
+
+	if (!argument)
+		return NULL;	
 	chunk.memory = malloc(1);
 	chunk.size = 0;
 
@@ -85,136 +70,85 @@ static char	*exec(const char *url, char *argument)
 	return response;
 	(void)chunk;
 }
-/*
+
 static void	clean_up_json(char **s)
 {
 	const char	*start = ",\"response\":\"";
-	const char	*end   = "\",\"done\":";
-	char		*cleaned_up = NULL;
-	size_t		from = 0;
-	size_t		to = 0;
-	size_t		iterator = 0;
+	const char	*end = "\",\"done\":";
+	size_t		from = 0, to = 0, iterator = 0;
 
-	//if (*s)
-	//	printf("Cleaning : %s\n", *s);
-	//printf("Start len : %ld\nEnd len : %ld\nTotal len : %ld\n", 
-	//		strlen(start), strlen(end), strlen(*s));
-	
 	for (size_t i = 0; (*s)[i] && (!from || !to); i++)
 	{
 		iterator = 0;
 		while (!from
-				&& start[iterator] && (*s)[i + iterator]
-				&& start[iterator] == (*s)[i + iterator])
-			iterator++;
-		while (from
+				&& start[iterator] && (*s)[i + iterator] 
+				&& start[iterator] == (*s)[i + iterator]
+				) iterator++;
+		
+		if (iterator == strlen(start))
+			from = i + iterator;
+
+		iterator = 0;
+		while (!to
 				&& end[iterator] && (*s)[i + iterator]
-				&& end[iterator] == (*s)[i + iterator])
-			iterator++;
-		switch (iterator) {
-			case 13:
-				from = i + 13;
-				break ;
-			case 9:
-				to = i;
-				break ;
-			default:
-				break ;
-		}
+				&& end[iterator] == (*s)[i + iterator]) iterator++;
+		if (iterator == strlen(end))
+			to = i;
 	}
-	// printf("extracting from : %ld to %ld\n", from, to);
-	cleaned_up = malloc(to - from + 1);
-	if (!cleaned_up)
-		return ;
-	iterator = 0;
-	while (from < to)
-		cleaned_up[iterator++] = (*s)[from++];
-	cleaned_up[iterator] = 0;
+	if (from >= to || !from || !to)
+	{
+		free(*s), *s = NULL;
+        	return ;
+	}
+
+	char	*cleaned_up = malloc(to - from + 1);
+    	if (!cleaned_up)
+		return;
+
+	strncpy(cleaned_up, *s + from, to - from);
+	cleaned_up[to - from] = '\0';
 	free(*s);
 	*s = cleaned_up;
-	// printf("Cleaned up res 1 : %s\n", cleaned_up);
-}*/
-static void clean_up_json(char **s) {
-    const char *start = ",\"response\":\"";
-    const char *end = "\",\"done\":";
-    size_t from = 0, to = 0, iterator = 0;
-
-    for (size_t i = 0; (*s)[i] && (!from || !to); i++) {
-        iterator = 0;
-        while (!from && start[iterator] && (*s)[i + iterator] && start[iterator] == (*s)[i + iterator]) iterator++;
-        if (iterator == strlen(start)) from = i + iterator;
-
-        iterator = 0;
-        while (!to && end[iterator] && (*s)[i + iterator] && end[iterator] == (*s)[i + iterator]) iterator++;
-        if (iterator == strlen(end)) to = i;
-    }
-
-    if (from >= to || !from || !to) {
-        free(*s);
-        *s = NULL;
-        return;
-    }
-
-    char *cleaned_up = malloc(to - from + 1);
-    if (!cleaned_up) return;
-
-    strncpy(cleaned_up, *s + from, to - from);
-    cleaned_up[to - from] = '\0';
-    free(*s);
-    *s = cleaned_up;
 }
 
 
 static void	display(char *s)
 {
+	if (!s)
+		return ;
 	printf("%s\n", s);
 	fflush(stdout);
 	return ; (void)s;
 }
-/*
+
 static char	*build_prompt(int ac, char **av)
 {
-	char	*prompt = NULL;
-	size_t	len = 0;
+	if (ac <= 2 || !av)
+		return NULL;
 
+	size_t	len = 0;
+	char	*prompt = NULL;
+	
 	for (int i = 2; i < ac; i++)
+	{
+		if (!av[i])
+			continue ;
 		len += strlen(av[i]);
-	prompt = malloc(len + ac);
+	}
+
+	prompt = malloc(len + ac + 1);
 	if (!prompt)
 		return NULL;
 	prompt[0] = '\0';
+
 	for (int i = 2; i < ac; i++)
 	{
-		strlcat(prompt, av[i], strlen(prompt) + strlen(av[i]) + 1);
-		strlcat(prompt, " ", strlen(prompt) + 2);
+		if (!av[i])
+			continue;
+		strncat(prompt, av[i], len + ac);
+		strncat(prompt, " ", len + ac);
 	}
-	//	printf("prompt is : %s\n", prompt); 
 	return prompt;
-}*/
-static char *build_prompt(int ac, char **av) {
-    char *prompt = NULL;
-    size_t len = 0;
-
-    for (int i = 2; i < ac; i++) {
-        // Supprimer les sauts de ligne et les caractères spéciaux
-        for (size_t j = 0; av[i][j]; j++) {
-            if (av[i][j] == '\n' || av[i][j] == '\r') {
-                av[i][j] = ' ';
-            }
-        }
-        len += strlen(av[i]);
-    }
-
-    prompt = malloc(len + ac);
-    if (!prompt) return NULL;
-    prompt[0] = '\0';
-
-    for (int i = 2; i < ac; i++) {
-        strlcat(prompt, av[i], len + ac);
-        strlcat(prompt, " ", len + ac);
-    }
-
-    return prompt;
 }
 
 static void	clean_input(char **input)
@@ -223,12 +157,43 @@ static void	clean_input(char **input)
 	
 	while (*p) 
 	{
-		if (*p == '\\' && (*(p + 1) != 'n' && *(p + 1) != 't'))
+		if (*p == '\\')// && (*(p + 1) != 'n' && *(p + 1) != 't'))
 			*p = ' ';
 		p++;
 	}
 }
 
+char	*strreplace(const char *str, const char *old, const char *new)
+{
+    // Compter le nombre d'occurrences de 'old' dans 'str'
+    int count = 0;
+    const char *tmp = str;
+    while ((tmp = strstr(tmp, old))) {
+        count++;
+        tmp += strlen(old);
+    }
+
+    // Allouer la mémoire pour la nouvelle chaîne
+    size_t new_len = strlen(str) + count * (strlen(new) - strlen(old));
+    char *result = malloc(new_len + 1);
+    if (!result) return NULL;
+
+    // Construire la nouvelle chaîne
+    char *ptr = result;
+    const char *start = str;
+    while (count--) {
+        const char *found = strstr(start, old);
+        size_t len = found - start;
+        strncpy(ptr, start, len);
+        ptr += len;
+        strcpy(ptr, new);
+        ptr += strlen(new);
+        start = found + strlen(old);
+    }
+    strcpy(ptr, start);
+
+    return result;
+}
 
 int	main(int ac, char **av)	//	./ask_littletown [model] [prompt]
 {
@@ -249,13 +214,24 @@ int	main(int ac, char **av)	//	./ask_littletown [model] [prompt]
 		return 0;
 	} else {
 		prompt = build_prompt(ac, av);
-		if (!prompt)
-			return 0;
+		if (!prompt) return 0;
+		if (!av[1]) return 0;
 		model = strdup(av[1]);
+		if (!model) return free(prompt), 0;
+		
 		clean_input(&prompt);
+		
+		char *new = strreplace(prompt, "\n", " ");
+		free(prompt);
+		prompt = new;
+		new = strreplace(prompt, "\t", " ");
+		free(prompt);
+		prompt = new;
 	}
 	curl_argument = build_argument(prompt, model);
 	response = exec(url, curl_argument);
+	if (!response)
+		return free(prompt), free(model), free(curl_argument), 0;
 	clean_up_json(&response);
 	display(response);
 	free(response);
@@ -263,6 +239,6 @@ int	main(int ac, char **av)	//	./ask_littletown [model] [prompt]
 	free(model);
 	if (curl_argument)
 		free(curl_argument);
-	return 1; //printf("ok"), 1;
+	return 1; 
 }
 
