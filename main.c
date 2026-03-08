@@ -203,8 +203,8 @@ int	main(int ac, char **av)	//	./ask_littletown [model] [prompt]
 	char		*response = NULL;
 	const char	*url = "http://192.168.1.200:11434/api/generate";
 
-	for (int i = 2; i < ac; i++)
-		printf("AV[%d] : %s\n", i, av[i]); 
+//	for (int i = 2; i < ac; i++)
+//		printf("AV[%d] : %s\n", i, av[i]); 
 	if (ac <= 2) {
 		return 0;
 		prompt = get_next_line(0);
