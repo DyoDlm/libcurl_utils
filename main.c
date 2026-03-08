@@ -8,7 +8,7 @@
 char    *get_next_line(int fd);
 size_t	WriteMemoryCallback(void *contents, size_t size, size_t nmemb, void *userp);
 
-static char	*build_argument(char *prompt, char *model)
+/*static char	*build_argument(char *prompt, char *model)
 {
 	const char	*close_format = "\", \"stream\":false }  ";
 	const char	*json_format  = "{ \"model\":\"";
@@ -31,7 +31,21 @@ static char	*build_argument(char *prompt, char *model)
 	//	printf("argument is : %s\n", argument);
 	//	argument = url + json_format + prompt + close_format;	
 	return argument;
+}*/
+static char *build_argument(char *prompt, char *model) {
+    const char *close_format = "\", \"stream\":false }  ";
+    const char *json_format = "{ \"model\":\"";
+    const char *json_format2 = "\",\"prompt\":\"";
+
+    size_t argument_len = strlen(prompt) + strlen(json_format) + strlen(json_format2) + strlen(model) + strlen(close_format) + 1;
+    char *argument = malloc(argument_len);
+
+    if (!argument) return NULL;
+
+    snprintf(argument, argument_len, "%s%s%s%s%s", json_format, model, json_format2, prompt, close_format);
+    return argument;
 }
+
 
 static char	*exec(const char *url, char *argument)
 {
@@ -71,7 +85,7 @@ static char	*exec(const char *url, char *argument)
 	return response;
 	(void)chunk;
 }
-
+/*
 static void	clean_up_json(char **s)
 {
 	const char	*start = ",\"response\":\"";
@@ -119,7 +133,37 @@ static void	clean_up_json(char **s)
 	free(*s);
 	*s = cleaned_up;
 	// printf("Cleaned up res 1 : %s\n", cleaned_up);
+}*/
+static void clean_up_json(char **s) {
+    const char *start = ",\"response\":\"";
+    const char *end = "\",\"done\":";
+    size_t from = 0, to = 0, iterator = 0;
+
+    for (size_t i = 0; (*s)[i] && (!from || !to); i++) {
+        iterator = 0;
+        while (!from && start[iterator] && (*s)[i + iterator] && start[iterator] == (*s)[i + iterator]) iterator++;
+        if (iterator == strlen(start)) from = i + iterator;
+
+        iterator = 0;
+        while (!to && end[iterator] && (*s)[i + iterator] && end[iterator] == (*s)[i + iterator]) iterator++;
+        if (iterator == strlen(end)) to = i;
+    }
+
+    if (from >= to || !from || !to) {
+        free(*s);
+        *s = NULL;
+        return;
+    }
+
+    char *cleaned_up = malloc(to - from + 1);
+    if (!cleaned_up) return;
+
+    strncpy(cleaned_up, *s + from, to - from);
+    cleaned_up[to - from] = '\0';
+    free(*s);
+    *s = cleaned_up;
 }
+
 
 static void	display(char *s)
 {
@@ -127,7 +171,7 @@ static void	display(char *s)
 	fflush(stdout);
 	return ; (void)s;
 }
-
+/*
 static char	*build_prompt(int ac, char **av)
 {
 	char	*prompt = NULL;
@@ -146,6 +190,31 @@ static char	*build_prompt(int ac, char **av)
 	}
 	//	printf("prompt is : %s\n", prompt); 
 	return prompt;
+}*/
+static char *build_prompt(int ac, char **av) {
+    char *prompt = NULL;
+    size_t len = 0;
+
+    for (int i = 2; i < ac; i++) {
+        // Supprimer les sauts de ligne et les caractères spéciaux
+        for (size_t j = 0; av[i][j]; j++) {
+            if (av[i][j] == '\n' || av[i][j] == '\r') {
+                av[i][j] = ' ';
+            }
+        }
+        len += strlen(av[i]);
+    }
+
+    prompt = malloc(len + ac);
+    if (!prompt) return NULL;
+    prompt[0] = '\0';
+
+    for (int i = 2; i < ac; i++) {
+        strlcat(prompt, av[i], len + ac);
+        strlcat(prompt, " ", len + ac);
+    }
+
+    return prompt;
 }
 
 static void	clean_input(char **input)
@@ -169,6 +238,8 @@ int	main(int ac, char **av)	//	./ask_littletown [model] [prompt]
 	char		*response = NULL;
 	const char	*url = "http://192.168.1.200:11434/api/generate";
 
+	for (int i = 2; i < ac; i++)
+		printf("AV[%d] : %s\n", i, av[i]); 
 	if (ac <= 2) {
 		return 0;
 		prompt = get_next_line(0);
