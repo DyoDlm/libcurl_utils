@@ -201,7 +201,7 @@ static void	clean_printable(char **prompt)
 	{
 		if ((*prompt)[i] <= 31)
 		       (*prompt)[i] = ' ';	
-		printf("%c", (*prompt)[i]);
+//		printf("%c", (*prompt)[i]);
 	}
 }
 
