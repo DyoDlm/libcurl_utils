@@ -194,6 +194,16 @@ char	*strreplace(const char *str, const char *old, const char *new)
 
     return result;
 }
+static void	clean_printable(char **prompt)
+{
+
+	for (int i = 0; (*prompt)[i]; i++)
+	{
+		if ((*prompt)[i] <= 31)
+		       (*prompt)[i] = ' ';	
+		printf("%c", (*prompt)[i]);
+	}
+}
 
 int	main(int ac, char **av)	//	./ask_littletown [model] [prompt]
 {
@@ -227,6 +237,7 @@ int	main(int ac, char **av)	//	./ask_littletown [model] [prompt]
 		new = strreplace(prompt, "\t", " ");
 		free(prompt);
 		prompt = new;
+		clean_printable(&prompt);
 	}
 	curl_argument = build_argument(prompt, model);
 	response = exec(url, curl_argument);
